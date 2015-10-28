@@ -3,7 +3,8 @@
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="utf-8">
 <title>Cubism.js Demo</title>
 <link rel="stylesheet" type="text/css" href="/css/style.css">
-</head><body>
+</head>
+<body>
 <script src="/js/d3.min.js"></script>
 <script src="/js/cubism.v1.min.js"></script>
 <script>
@@ -22,15 +23,68 @@ d3.select("body").append("div")
     .attr("class", "rule")
     .call(context.rule());
 
+
+var collectd_metrics = [
+  "cpu_value",
+  "df_value",
+  "disk_read",
+  "disk_write",
+  "entropy_value",
+  "interface_rx",
+  "interface_tx",
+  "irq_value",
+  "load_longterm",
+  "load_midterm",
+  "load_shortterm",
+  "memory_value",
+  "processes_value",
+  "swap_value",
+  "users_value"
+]
+
 d3.select("body").selectAll(".horizon")
-    .data(d3.range(1, 20).map(random))
+    .data(collectd_metrics.map(random2))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
-    .call(context.horizon().extent([-10, 10]));
+    .call(context.horizon().extent(values));
 
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
 });
+
+function influxDateFormat(d){
+    return (d / 1000)+'s';
+}
+
+var values = [];
+
+function random2(x) {
+  var value = 0,
+      i = 0,
+      last;
+  return context.metric(function(start, stop, step, callback) {
+    start = +start, stop = +stop;
+
+    if (isNaN(last)) last = start;
+    //var query = "select value from interface_rx limit 1440"
+    //var query = "select mean(value) from processes_value where time > now() - 4h group by time(20s)"
+    var query = "select mean(value) from "+ x +" where time < "+influxDateFormat(stop)+" and time > "+influxDateFormat(start)+" group by time(10s)"
+
+
+    var url = "http://127.0.0.1:8086/query?pretty=true&db=collectd&q="+encodeURIComponent(query);
+    console.log(url);
+    d3.xhr(url, 'application/json', function(error, data) {
+        json = JSON.parse(data.response);
+        values = json.results[0].series[0].values.map(function(row) {
+            return row[1];
+        });
+        console.log(values);
+        callback(null, values = values.slice((start - stop) / step));
+    })
+
+  }, x);
+}
+
 
 // Replace this with context.graphite and graphite.metric!
 function random(x) {
@@ -40,7 +94,7 @@ function random(x) {
       last;
   return context.metric(function(start, stop, step, callback) {
     start = +start, stop = +stop;
-    
+
     if (isNaN(last)) last = start;
     while (last < stop) {
       last += step;

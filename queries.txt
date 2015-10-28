@@ -19,3 +19,41 @@ curl -G -s 'http://localhost:8086/query?pretty=true' --data-urlencode "db=racwa"
 
 
 curl -G -s 'http://localhost:8086/query?pretty=true' --data-urlencode "db=racwa" --data-urlencode "q=SELECT location,count(name) FROM cache_on group by location" | jq '.results[0].series[0].values[0][1]'
+
+
+
+curl -G 'http://localhost:8086/query?pretty=true' --data-urlencode "db=collectd" --data-urlencode "q=show series"
+
+
+&q=select+sum("+expression.column+")+from+" + expression.series
+        + "+group+by+time(" + step * 1000 + "u)+fill(0)"
+        + "+where"
+    + "+time+<+" + influxDateFormat(stop)
+    + "+and+time+>+" + influxDateFormat(start)
+
+
+1446030150000
+1446044550000
+
+cpu_value
+df_value
+disk_read
+disk_write
+entropy_value
+interface_rx
+interface_tx
+irq_value
+load_longterm
+load_midterm
+load_shortterm
+memory_value
+processes_value
+swap_value
+users_value
+
+q=select sum(value) from cpu_value where time < 1446044550s and time > 1446030150s group by time(10s)
+
+curl -G \
+'http://localhost:8086/query?pretty=true' \
+--data-urlencode "db=collectd" \
+--data-urlencode "q=select mean(value) from memory_value where time < 1446044550s and time > 1446030150s group by time(10s)"
