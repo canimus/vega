@@ -1,0 +1,21 @@
+curl -G 'http://localhost:8086/query?pretty=true' --data-urlencode "db=racwa" --data-urlencode "q=SELECT count(name) FROM cache_on"
+
+# Install of jq to parse json from command line
+curl -G -s 'http://localhost:8086/query?pretty=true' --data-urlencode "db=racwa" --data-urlencode "q=SELECT count(name) FROM cache_on" | jq '.results[0].series[0].values[0][1]'
+
+
+curl -G -s 'http://localhost:8086/query?pretty=true' --data-urlencode "db=racwa" --data-urlencode "q=SELECT stddev(response) FROM cache_on" | jq '.results[0].series[0].values[0][1]'
+
+
+
+curl -G -s 'http://localhost:8086/query?pretty=true' --data-urlencode "db=racwa" --data-urlencode "q=SELECT sum(bytes) FROM cache_on" | jq '.results[0].series[0].values[0][1]'
+
+
+curl -G -s 'http://localhost:8086/query?pretty=true' --data-urlencode "db=racwa" --data-urlencode "q=SELECT top(response, 10) FROM cache_on" | jq '.results[0].series[0].values[0][1]'
+
+
+curl -G -s 'http://localhost:8086/query?pretty=true' --data-urlencode "db=racwa" --data-urlencode "q=SELECT distinct(name) FROM cache_on" | jq '.results[0].series[0].values[0][1]'
+
+
+
+curl -G -s 'http://localhost:8086/query?pretty=true' --data-urlencode "db=racwa" --data-urlencode "q=SELECT location,count(name) FROM cache_on group by location" | jq '.results[0].series[0].values[0][1]'
